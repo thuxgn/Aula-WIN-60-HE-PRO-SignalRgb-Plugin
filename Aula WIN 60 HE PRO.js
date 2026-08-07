@@ -13,14 +13,13 @@ LightingMode:readonly
 forcedColor:readonly
 */
 
-export function ControllableParameters(){
+export function ControllableParameters() {
   return [
     {"property":"shutdownColor", "label":"Shutdown Color", "min":"0", "max":"360", "type":"color", "default":"009bde"},
     {"property":"LightingMode", "label":"Lighting Mode", "type":"combobox", "values":["Canvas", "Forced"], "default":"Canvas"},
     {"property":"forcedColor", "label":"Forced Color", "min":"0", "max":"360", "type":"color", "default":"009bde"},
   ];
 }
-
 
 export function vKeys() {
     return [
@@ -103,6 +102,7 @@ export function vKeys() {
 
 export function Initialize() {
     device.addFeature("keyboard");
+    sendInitPacket();
 }
 
 export function Render() {
@@ -179,10 +179,29 @@ function hexToRgb(hex) {
   return colors;
 }
 
+function sendInitPacket() {
+    let packet = new Array(65).fill(0x00);
+    packet[0] = 0x00;
+    
+    // Custom Lighting mode, max luminance, max speed, never sleep
+    const initData = [
+        0x5C, 0x2C, 0x18, 0xD5, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 
+        0xFF, 0x00, 0x7F, 0x7F, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x7F, 0xFF, 0x7F, 0x7F, 0x00, 
+        0xFF, 0x7F, 0x7F, 0x7F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x11, 0x04, 0x15, 0x05, 0x00
+    ];
+    
+    for (let i = 0; i < initData.length; i++) {
+        packet[i + 1] = initData[i];
+    }
+    
+    device.write(packet, 65);
+    device.pause(100);
+}
+
 export function Validate(endpoint) {
   return endpoint.interface === 2 && endpoint.usage === 0x0001 && endpoint.usage_page === 0xffa0 && endpoint.collection === 0x0000;
 }
 
 export function ImageUrl() {
-  return "https://aulahub.aulacn.com/hub/assets/win60hePro-BCQHuCGe.png";
-}
+  return "https://hub.aulacn.com/assets/blue-DkMpX74b.webp"
+}   
